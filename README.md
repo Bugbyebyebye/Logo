@@ -31,7 +31,7 @@ Logo 是一种图形编程语言，它使用命令来描述图形的绘制。以
 ### 算数运算符
 * `sqrt n` ：计算 n 的平方根。
 * `power n m` ：计算 n 的 m 次方。
-* `ln n` ：计[logo.md](logo.md)算 n 的对数。
+* `ln n` ：计[logo.md](README.md)算 n 的对数。
 * `log10 n` ：计算 n 的以 10 为底的对数。
 * `exp n` ：计算 e 的 n 次方。
 

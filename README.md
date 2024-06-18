@@ -49,7 +49,7 @@ Logo 是一种图形编程语言，它使用命令来描述图形的绘制。以
 * `random n` ：生成一个随机数，范围为 0 到 n。
 
 ### 程序
-* `to functionName [arguments] [commands] end` ：定义一个函数。
+* `to functionName arguments [commands] end` ：定义一个函数。
 
 ### 递归调用
 ```

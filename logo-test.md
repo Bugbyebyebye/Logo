@@ -59,6 +59,7 @@ fd 40 rt 90 fd 40 rt 90 fd 40 rt 90 fd 40`
 ![img.png](img/img12.png)
 
 ## 函数
-#### 测试语句
-
+#### 定义并调用函数
+`to square [:n] repeat 4 [fd :n rt 90] end | square[100]`
 #### 效果
+![img.png](img/img13.png)

@@ -11,11 +11,11 @@ pen.setposition(0, 0)
 pen.pendown()
 
 # 全局状态
-variables = {'h':100,'s':'fdkfdjk'}
-functions = {}
+variables = {'h': 100, 's': 'fdkfdjk'}  # 变量表
+functions = {'square':(['n'],[('fd',('id','n'))])}  # 函数表
 
 
-def lexer(program):
+def lexer(program):  # 词法分析
     tokens = []
     pos = 0
     keywords = [
@@ -64,29 +64,29 @@ def lexer(program):
     return tokens
 
 
-def parser(tokens):
+def parser(tokens):  # 语法分析器
     pos = 0
     current_token = tokens[pos]
 
-    def next_token():
+    def next_token():  # 获取下一个 token
         nonlocal pos, current_token
         pos += 1
         current_token = tokens[pos]
 
-    def match(token_type):
+    def match(token_type):  # 匹配当前 token 的类型
         nonlocal current_token
         if current_token[0] == token_type:
             next_token()
         else:
             raise SyntaxError(f"Expected {token_type}, found {current_token[0]}")
 
-    def program():
+    def program():  # 程序
         commands = []
         while current_token[0] != 'eof':
             commands.append(statement())
         return 'program', commands
 
-    def statement():
+    def statement():  # 语句
         if current_token[0] == 'fd':
             next_token()
             return 'fd', expr()
@@ -191,11 +191,15 @@ def parser(tokens):
         elif current_token[0] == 'to':
             next_token()
             func_name = current_token[1]
-            next_token()
+            next_token()  # 去掉 [
+
             args = []
-            while current_token[0] == 'id':
-                args.append(current_token[1])
+            while current_token[0] != ']':
+                if current_token[0] == 'id':
+                    args.append(current_token[1])
                 next_token()
+
+            next_token()  # 去掉 ]
             commands = []
             while current_token[0] != 'end':
                 commands.append(statement())
@@ -203,6 +207,7 @@ def parser(tokens):
                     raise SyntaxError("Expected 'end' keyword")
             next_token()  # consume 'end'
             functions[func_name] = (args, commands)
+            print(functions)
             return 'function', (func_name, args, commands)
         elif current_token[0] == 'random':
             next_token()
@@ -240,9 +245,21 @@ def parser(tokens):
             next_token()
             return 'stop', None
         else:
-            raise SyntaxError(f"Unexpected token: {current_token}")
+            # 函数调用的情况
+            if current_token[0] == 'id' and current_token[1] in functions:
+                func_name = current_token[1]
+                next_token()
+                next_token()
+                args = []
+                while current_token[0] != ']':
+                    args.append(expr())
+                next_token()
+                return 'call', (func_name, args)
+            else:
+                raise SyntaxError(f"Unexpected token: {current_token}")
 
-    def expr():
+    def expr():  # 表达式
+        global result
         if current_token[0] == 'num':
             num = current_token[1]
             next_token()
@@ -252,12 +269,17 @@ def parser(tokens):
             next_token()
             return 'str', str
         elif current_token[0] == 'id':
-            result = variables[current_token[1]]
+            try:
+                result = variables[current_token[1]]
+            except KeyError:
+                value = current_token[1]
+                next_token()
+                return 'id', value
             next_token()
             if type(result) == "":
-                return 'str',result
+                return 'str', result
             else:
-                return 'num',result
+                return 'num', result
         elif current_token[0] == ':':
             next_token()
             arg = expr()
@@ -269,7 +291,7 @@ def parser(tokens):
     return tree
 
 
-def interpreter(tree):
+def interpreter(tree):  # 求值器
     if tree[0] == 'program':
         for statement in tree[1]:
             interpreter(statement)
@@ -309,12 +331,10 @@ def interpreter(tree):
         variables[tree[1][0]] = interpreter_expr(arg)
         print(variables)
     elif tree[0] == 'print':
-
         if tree[1] in variables:
             print(variables[tree[1]])
         else:
             print(tree[1])
-
     elif tree[0] == 'repeat':
         n = interpreter_expr(tree[1][0])
         for _ in range(n):
@@ -355,30 +375,46 @@ def interpreter(tree):
         result = math.exp(interpreter_expr(tree[1]))
         print(result)
         return result
-    elif tree[0] == 'function':
-        func_name = tree[1][0]
-        args = tree[1][1]
-        commands = tree[1][2]
-        functions[func_name] = (args, commands)
+    # elif tree[0] == 'function':
+    #     func_name = tree[1][0]
+    #     args = tree[1][1]
+    #     commands = tree[1][2]
+    #     functions[func_name] = (args, commands)
     elif tree[0] == 'variable':
         value = tree[1]
         print(value)
         return value
     elif tree[0] == 'stop':
         return
+    elif tree[0] == 'call':
+        func_name = tree[1][0]
+        args = [interpreter_expr(arg) for arg in tree[1][1]]
+        execute_function(func_name, args)
 
 
-def interpreter_expr(expr):
+def execute_function(func_name, args):  # 函数调用
+    if func_name in functions:
+        func_args, func_commands = functions[func_name]
+        saved_variables = variables.copy()
+        for arg_name, arg_value in zip(func_args, args):
+            variables[arg_name] = arg_value
+        for statement in func_commands:
+            interpreter(statement)
+        variables.update(saved_variables)
+
+
+def interpreter_expr(expr):  # 获取表达式的值
     if expr[0] == 'num':
         return expr[1]
     elif expr[0] == 'str':
         return expr[1]
     elif expr[0] == 'id':
-        return variables[expr[0]]
+        return variables[expr[1]]
     else:
         raise ValueError("Invalid expression type")
 
-def get_expression(expr):
+
+def get_expression(expr):  # 获取表达式的值
     if expr[0][0] == 'num':
         if expr[1][0] in ['>', '<', '==', '>=', '<=']:
             if expr[1][0] == '>':
@@ -403,15 +439,15 @@ def get_expression(expr):
                 return expr[0][1] / expr[2][1]
 
 
-def run_logo_program(program):
-    tokens = lexer(program)
-    tree = parser(tokens)
-    interpreter(tree)
+def run_logo_program(program):  # 运行logo程序
+    tokens = lexer(program)  # 词法分析
+    tree = parser(tokens)  # 语法分析
+    interpreter(tree)  # 解释器
 
 
 if __name__ == '__main__':
     while True:
-        command = input("Logo> ").strip()
+        command = input("Logo>> ").strip()
         if command.lower() == "exit":
             break
         run_logo_program(command)

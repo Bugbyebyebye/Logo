@@ -47,10 +47,16 @@ fd 40 rt 90 fd 40 rt 90 fd 40 rt 90 fd 40`
 #### 效果
 ![img.png](img/img8.png)
 
-## 条件语句
-`make n 100 | if :n > 50 [fd 100]`
-#### 效果
 
+## 条件语句
+`if 10 >= 5 [repeat 4 [fd 90 rt 80]] | if 10 > 20 [fd 10] else [fd 100 rt 80 fd 50 lt 90 fd 100]`
+#### 效果
+![img.png](img/img10.png)
+![img.png](img/img11.png)
+## 循环语句
+`while 10 > 0 [repeat 4 [fd 90 rt 80]]`
+#### 效果
+![img.png](img/img12.png)
 
 ## 函数
 #### 测试语句

@@ -156,7 +156,10 @@ def parser(tokens):
             return 'repeat', (n, commands)
         elif current_token[0] == 'while':
             next_token()
-            cond = expr()
+            cond = []
+            while current_token[0] != '[':
+                cond.append(current_token)
+                next_token()
             match('[')  # 这里可能需要注意方括号的匹配问题
             commands = []
             while current_token[0] != ']':
@@ -318,11 +321,11 @@ def interpreter(tree):
             for statement in tree[1][1]:
                 interpreter(statement)
     elif tree[0] == 'while':
-        while interpreter_expr(tree[1][0]):
+        while get_expression(tree[1][0]):
             for statement in tree[1][1]:
                 interpreter(statement)
     elif tree[0] == 'if':
-        if interpreter_expr(tree[1][0]):
+        if get_expression(tree[1][0]):
             for statement in tree[1][1]:
                 interpreter(statement)
         else:
@@ -374,6 +377,30 @@ def interpreter_expr(expr):
         return variables[expr[0]]
     else:
         raise ValueError("Invalid expression type")
+
+def get_expression(expr):
+    if expr[0][0] == 'num':
+        if expr[1][0] in ['>', '<', '==', '>=', '<=']:
+            if expr[1][0] == '>':
+                if expr[2][0] == '=':
+                    return expr[0][1] >= expr[3][1]
+                return expr[0][1] > expr[2][1]
+            elif expr[1][0] == '<':
+                if expr[2][0] == '=':
+                    return expr[0][1] <= expr[3][1]
+                return expr[0][1] < expr[2][1]
+            elif expr[1][0] == '==':
+                return expr[0][1] == expr[2][1]
+
+        elif expr[1] in ['+', '-', '*', '/']:
+            if expr[1][0] == '+':
+                return expr[0][1] + expr[2][1]
+            elif expr[1][0] == '-':
+                return expr[0][1] - expr[2][1]
+            elif expr[1][0] == '*':
+                return expr[0][1] * expr[2][1]
+            elif expr[1][0] == '/':
+                return expr[0][1] / expr[2][1]
 
 
 def run_logo_program(program):

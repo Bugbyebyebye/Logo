@@ -241,9 +241,23 @@ def parser(tokens):  # 语法分析器
                 result = variables[current_token[1]]
                 next_token()
                 return 'variable', result
+        elif current_token[0] == 'num':
+            return 'num',expr()
         elif current_token[0] == 'stop':
             next_token()
             return 'stop', None
+        elif current_token[0] == '+':
+            next_token()
+            return '+', None
+        elif current_token[0] == '-':
+            next_token()
+            return '-', None
+        elif current_token[0] == '*':
+            next_token()
+            return '*', None
+        elif current_token[0] == '/':
+            next_token()
+            return '/', None
         else:
             # 函数调用的情况
             if current_token[0] == 'id' and current_token[1] in functions:
@@ -295,6 +309,9 @@ def interpreter(tree):  # 求值器
     if tree[0] == 'program':
         for statement in tree[1]:
             interpreter(statement)
+    elif tree[0] == 'num':
+        print(tree[1][1])
+        return tree[1][1]
     elif tree[0] == 'id':
         return variables[tree[1]]
     elif tree[0] == 'fd':
@@ -375,11 +392,6 @@ def interpreter(tree):  # 求值器
         result = math.exp(interpreter_expr(tree[1]))
         print(result)
         return result
-    # elif tree[0] == 'function':
-    #     func_name = tree[1][0]
-    #     args = tree[1][1]
-    #     commands = tree[1][2]
-    #     functions[func_name] = (args, commands)
     elif tree[0] == 'variable':
         value = tree[1]
         print(value)
